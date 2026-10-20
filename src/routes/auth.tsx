@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { friendlyError } from "@/lib/data";
+import { DEMO_MODE } from "@/lib/demo-mode";
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>) => ({ mode: s.mode === "signup" ? ("signup" as const) : undefined }),
@@ -50,7 +51,7 @@ function AuthPage() {
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const guestStarting = useRef(false);
-  const { user } = useAuth();
+  const { user, startDemo } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -124,6 +125,25 @@ function AuthPage() {
         </div>
       </AuthCard>
     );
+
+  if (DEMO_MODE) return (
+    <AuthCard>
+      <div className="text-center">
+        <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><ListChecks className="size-6" /></span>
+        <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-primary">Interactive preview</p>
+        <h1 className="mt-2 text-2xl font-bold">Welcome to StudyFlow</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Enter the demo workspace to explore courses, tasks, and your study plan.</p>
+      </div>
+      <div className="mt-6 space-y-2">
+        <Label htmlFor="demo-name">Your name</Label>
+        <Input id="demo-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Demo Student" autoComplete="name" />
+      </div>
+      <Button className="mt-5 w-full" onClick={() => { startDemo(name); void navigate({ to: "/dashboard" }); }}>
+        Start demo <ArrowRight className="size-4" />
+      </Button>
+      <p className="mt-4 text-center text-xs text-muted-foreground">Demo data is saved in this browser only. No account or Supabase connection is needed.</p>
+    </AuthCard>
+  );
 
   return (
     <AuthCard>

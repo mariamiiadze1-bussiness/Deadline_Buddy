@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { BookOpen, Check, ExternalLink, FileUp, Plus, Search } from "lucide-react";
+import { Check, ExternalLink, FileUp, Plus, Search } from "lucide-react";
 import { AppLayout } from "@/components/app/layout";
+import { CourseArtwork } from "@/components/app/CourseArtwork";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -199,19 +200,21 @@ function CoursesPage() {
               const alreadyAdded = addedKeys.has(course.name.toLowerCase()) || addedKeys.has(course.code.toLowerCase());
               const originalIndex = CATALOG.indexOf(course);
               return (
-                <li key={course.code} className="card-surface flex min-h-48 flex-col p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary"><BookOpen className="size-5" /></span>
-                    <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">{course.category}</span>
-                  </div>
-                  <h3 className="mt-4 font-semibold leading-snug">{course.name}</h3>
-                  <p className="mt-1 text-xs font-medium text-muted-foreground">{course.code}</p>
-                  <p className="mt-2 flex-1 text-sm text-muted-foreground">{course.description}</p>
-                  <Button type="button" size="sm" variant={alreadyAdded ? "secondary" : "default"} className="mt-4 w-full"
+                <li key={course.code} className="card-surface flex min-h-48 flex-col overflow-hidden">
+                  <div className="p-2 pb-0"><CourseArtwork name={course.name} category={course.category} code={course.code} /></div>
+                  <div className="flex flex-1 flex-col p-5 pt-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="text-xs font-medium text-muted-foreground">{course.code}</span>
+                      <span className="rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">{course.category}</span>
+                    </div>
+                    <h3 className="mt-2 font-semibold leading-snug">{course.name}</h3>
+                    <p className="mt-2 flex-1 text-sm text-muted-foreground">{course.description}</p>
+                    <Button type="button" size="sm" variant={alreadyAdded ? "secondary" : "default"} className="mt-4 w-full"
                     disabled={alreadyAdded || saveCourse.isPending}
                     onClick={() => addCourse(course, originalIndex)}>
                     {alreadyAdded ? <><Check className="size-4" /> Added</> : <><Plus className="size-4" /> {saveCourse.isPending ? "Adding…" : "Add to my courses"}</>}
-                  </Button>
+                    </Button>
+                  </div>
                 </li>
               );
             })}

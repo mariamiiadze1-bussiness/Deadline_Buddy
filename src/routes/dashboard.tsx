@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { BookOpen, CalendarDays, CheckCircle2, ListChecks } from "lucide-react";
 import { AppLayout } from "@/components/app/layout";
+import { CourseArtwork } from "@/components/app/CourseArtwork";
 import { DeadlineBadge, PriorityBadge } from "@/components/app/bits";
 import { useCourses, useExams, useProfile, useTasks } from "@/lib/data";
 
@@ -120,11 +121,11 @@ function Dashboard() {
           ) : (
             <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {courses.map((course) => (
-                <li key={course.id} className="card-surface flex items-center gap-3 p-4">
-                  <span className="size-3 rounded-full" style={{ backgroundColor: course.color }} />
-                  <div className="min-w-0">
+                <li key={course.id} className="card-surface flex items-center gap-3 overflow-hidden p-2">
+                  <CourseArtwork name={course.name} category={course.description ?? ""} code={course.course_code} compact />
+                  <div className="min-w-0 px-2">
                     <p className="truncate font-medium">{course.name}</p>
-                    {course.course_code && <p className="text-sm text-muted-foreground">{course.course_code}</p>}
+                    {course.course_code && <p className="mt-1 text-sm text-muted-foreground">{course.course_code}</p>}
                   </div>
                 </li>
               ))}

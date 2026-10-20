@@ -11,6 +11,7 @@ import { useAuth } from "@/lib/auth";
 import { useCourses, useProfile, useTasks, type Task } from "@/lib/data";
 import { addDaysKey, dayKey, diffDaysKey, formatKey, formatDue } from "@/lib/dates";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_MODE } from "@/lib/demo-mode";
 
 export const Route = createFileRoute("/planner")({ component: PlannerPage });
 
@@ -39,8 +40,9 @@ function PlannerContent() {
   const courseById = useMemo(() => new Map(courses.map((course) => [course.id, course])), [courses]);
   const filesQuery = useQuery({
     queryKey: ["syllabi", user?.id],
-    enabled: !!user,
+    enabled: !!user && !DEMO_MODE,
     queryFn: async () => {
+      if (DEMO_MODE) return [];
       const { data, error } = await supabase.storage.from(BUCKET).list(user!.id, {
         limit: 100,
         sortBy: { column: "created_at", order: "desc" },
@@ -114,7 +116,7 @@ function PlannerContent() {
             <FileText className="size-8 text-muted-foreground" />
             <div>
               <p className="font-medium">No syllabus linked yet</p>
-              <p className="mt-1 text-sm text-muted-foreground">Upload a syllabus and attach it to a course to get course-specific planning suggestions.</p>
+              <p className="mt-1 text-sm text-muted-foreground">{DEMO_MODE ? "Syllabus uploads need Supabase setup. Your courses and tasks are available in this local demo." : "Upload a syllabus and attach it to a course to get course-specific planning suggestions."}</p>
             </div>
             <Button asChild><Link to="/syllabus"><Upload className="size-4" /> Upload syllabus</Link></Button>
           </div>

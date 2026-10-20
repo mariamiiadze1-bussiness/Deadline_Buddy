@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/lib/auth";
 import { useCourses } from "@/lib/data";
 import { supabase } from "@/integrations/supabase/client";
+import { DEMO_MODE } from "@/lib/demo-mode";
 
 export const Route = createFileRoute("/syllabus")({ component: SyllabusPage });
 
@@ -47,8 +48,9 @@ function SyllabusContent() {
 
   const filesQuery = useQuery({
     queryKey: ["syllabi", user?.id],
-    enabled: !!user,
+    enabled: !!user && !DEMO_MODE,
     queryFn: async () => {
+      if (DEMO_MODE) return [];
       const { data, error } = await supabase.storage.from(BUCKET).list(user!.id, {
         limit: 100,
         sortBy: { column: "created_at", order: "desc" },
@@ -65,6 +67,7 @@ function SyllabusContent() {
 
   const upload = useMutation({
     mutationFn: async (file: File) => {
+      if (DEMO_MODE) throw new Error("Syllabus uploads will be available after Supabase is connected.");
       if (!user) throw new Error("Sign in to upload a syllabus.");
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
       const path = user.id + "/" + crypto.randomUUID() + "-" + safeName;
@@ -133,6 +136,7 @@ function SyllabusContent() {
       </header>
 
       <section className="card-surface space-y-5 p-5 sm:p-7">
+        {DEMO_MODE && <p className="rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm text-muted-foreground">Syllabus file storage needs Supabase. Courses, tasks, and planning work in this local demo.</p>}
         <div className="flex items-start gap-3">
           <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary"><FileUp className="size-5" /></span>
           <div>
@@ -144,14 +148,14 @@ function SyllabusContent() {
         <div className="grid gap-4 sm:grid-cols-[minmax(200px,1fr)_minmax(220px,0.7fr)] sm:items-end">
           <div className="space-y-2">
             <Label htmlFor="syllabus-file">Syllabus file</Label>
-            <Input ref={fileInput} id="syllabus-file" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            <Input ref={fileInput} id="syllabus-file" type="file" disabled={DEMO_MODE} accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               onChange={(event) => chooseFile(event.target.files?.[0] ?? null)} />
             {selectedFile && <p className="text-xs text-muted-foreground">{selectedFile.name} · {(selectedFile.size / (1024 * 1024)).toFixed(1)} MB</p>}
             {validationError && <p role="alert" className="text-xs text-destructive">{validationError}</p>}
           </div>
           <div className="space-y-2">
             <Label>Course (optional)</Label>
-            <Select value={courseId} onValueChange={setCourseId}>
+            <Select value={courseId} onValueChange={setCourseId} disabled={DEMO_MODE}>
               <SelectTrigger aria-label="Attach syllabus to a course"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={NO_COURSE}>No specific course</SelectItem>
@@ -161,7 +165,7 @@ function SyllabusContent() {
           </div>
         </div>
 
-        <Button type="button" disabled={!selectedFile || upload.isPending} onClick={() => selectedFile && upload.mutate(selectedFile)}>
+        <Button type="button" disabled={DEMO_MODE || !selectedFile || upload.isPending} onClick={() => selectedFile && upload.mutate(selectedFile)}>
           {upload.isPending ? <><Loader2 className="size-4 animate-spin" /> Uploading…</> : <><Upload className="size-4" /> Upload syllabus</>}
         </Button>
       </section>
@@ -169,7 +173,7 @@ function SyllabusContent() {
       <section className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold">Your uploaded syllabi</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Files stay private and can be downloaded from here.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Files stay private and can be downloaded from here.</p>
         </div>
 
         {filesQuery.error ? (

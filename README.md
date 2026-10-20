@@ -22,3 +22,9 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Local demo mode
+
+The app starts in demo mode by default. Choose **Start demo** on the sign-in page to explore the app and create, edit, complete, or delete sample tasks without configuring Supabase. Demo changes are saved only in the current browser's local storage.
+
+When Supabase is ready, set `VITE_DEMO_MODE=false` in your local environment and configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` to switch back to account-based sign-in and cloud data. Syllabus file uploads require Supabase storage and are unavailable in local demo mode.
