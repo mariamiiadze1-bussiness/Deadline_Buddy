@@ -110,8 +110,11 @@ BEGIN
     IF NEW.status = 'completed' AND NEW.completed_at IS NULL THEN NEW.completed_at = now(); END IF;
     IF NEW.status <> 'completed' THEN NEW.completed_at = NULL; END IF;
   END IF;
-  IF TG_TABLE_NAME = 'study_sessions' AND NEW.task_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tasks WHERE id = NEW.task_id AND user_id = NEW.user_id) THEN
-    RAISE EXCEPTION 'Task not found'; END IF;
+  IF TG_TABLE_NAME = 'study_sessions' THEN
+    IF NEW.task_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM tasks WHERE id = NEW.task_id AND user_id = NEW.user_id) THEN
+      RAISE EXCEPTION 'Task not found';
+    END IF;
+  END IF;
   RETURN NEW;
 END $$;
 

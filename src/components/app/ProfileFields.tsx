@@ -15,6 +15,8 @@ function zones(current: string): string[] {
   }
   if (!list.includes(current)) list = [current, ...list];
   if (!list.includes("UTC")) list = ["UTC", ...list];
+  // Include Georgia explicitly for runtimes with an incomplete IANA timezone list.
+  if (!list.includes("Asia/Tbilisi")) list.push("Asia/Tbilisi");
   return list;
 }
 
@@ -33,7 +35,7 @@ export function ProfileFields({ f, setF, nameError }: { f: ProfileForm; setF: (f
         <Label>Time zone</Label>
         <Select value={f.timezone} onValueChange={(v) => setF({ ...f, timezone: v })}>
           <SelectTrigger><SelectValue /></SelectTrigger>
-          <SelectContent className="max-h-72">{zones(f.timezone).map((z) => <SelectItem key={z} value={z}>{z}</SelectItem>)}</SelectContent>
+          <SelectContent className="max-h-72">{zones(f.timezone).map((z) => <SelectItem key={z} value={z}>{z === "Asia/Tbilisi" ? "Georgia (Tbilisi) — Asia/Tbilisi" : z}</SelectItem>)}</SelectContent>
         </Select>
       </div>
       <div className="space-y-1.5">

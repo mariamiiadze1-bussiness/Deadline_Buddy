@@ -1,7 +1,7 @@
-import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
-  BarChart3, Bell, BookOpen, CalendarDays, CalendarClock, GraduationCap, LayoutDashboard, ListChecks, LogOut, Menu, Plus, Settings,
+  BarChart3, Bell, BookOpen, CalendarDays, CalendarClock, GraduationCap, LayoutDashboard, ListChecks, LogOut, Menu, Plus, Settings, FileUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -15,20 +15,19 @@ import { DeadlineBadge } from "@/components/app/bits";
 import { deadlineInfo } from "@/lib/dates";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_app")({ component: AppLayout });
-
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/tasks", label: "My Tasks", icon: ListChecks },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
   { to: "/courses", label: "Courses", icon: BookOpen },
+  { to: "/syllabus", label: "Syllabus", icon: FileUp },
   { to: "/exams", label: "Exams", icon: GraduationCap },
   { to: "/planner", label: "Study Planner", icon: CalendarClock },
   { to: "/progress", label: "Progress", icon: BarChart3 },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-function AppLayout() {
+export function AppLayout({ children }: { children?: ReactNode }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const profile = useProfile();
@@ -49,7 +48,7 @@ function AppLayout() {
   }
   return (
     <DialogsProvider>
-      <Shell />
+      <Shell>{children}</Shell>
     </DialogsProvider>
   );
 }
@@ -145,7 +144,7 @@ function Notifications() {
   );
 }
 
-function Shell() {
+function Shell({ children }: { children?: ReactNode }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="min-h-screen lg:pl-64">
@@ -163,7 +162,7 @@ function Shell() {
         </div>
         <div className="ml-auto"><Notifications /></div>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-8"><Outlet /></main>
+      <main className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-8">{children ?? <Outlet />}</main>
     </div>
   );
 }

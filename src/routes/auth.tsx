@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
-import { ListChecks, MailCheck } from "lucide-react";
+import { ArrowRight, ListChecks, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,12 +49,42 @@ function AuthPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const guestStarting = useRef(false);
   const { user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) navigate({ to: "/dashboard" });
+    if (user && !guestStarting.current) navigate({ to: "/dashboard" });
   }, [user, navigate]);
+
+  const continueAsGuest = async () => {
+    guestStarting.current = true;
+    setBusy(true);
+    try {
+      const { data, error } = await supabase.auth.signInAnonymously({ options: { data: { full_name: "Guest" } } });
+      if (error) throw error;
+      if (!data.user) throw new Error("Could not start a guest session.");
+
+      const { error: profileError } = await supabase.from("profiles").update({ full_name: "Guest", onboarded: true }).eq("id", data.user.id);
+      if (profileError) throw profileError;
+
+      const { error: demoError } = await supabase.rpc("load_demo_data");
+      if (demoError) throw demoError;
+
+      await navigate({ to: "/dashboard" });
+    } catch (err) {
+      guestStarting.current = false;
+      await supabase.auth.signOut();
+      const message = (err as { message?: string })?.message ?? "";
+      if (/anonymous/i.test(message) && /disabled|not enabled/i.test(message)) {
+        toast.error("Guest access isn't enabled for this project yet. Please sign in with email.");
+      } else {
+        toast.error(friendlyError(err));
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,6 +152,15 @@ function AuthPage() {
         </div>
         <Button type="submit" className="w-full" disabled={busy}>{busy ? "Please wait…" : signup ? "Create account" : "Sign in"}</Button>
       </form>
+      <div className="mt-5 flex items-center gap-3 text-xs text-muted-foreground">
+        <span className="h-px flex-1 bg-border" />
+        <span>or</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+      <Button type="button" variant="outline" className="mt-4 w-full" disabled={busy} onClick={continueAsGuest}>
+        {busy ? "Preparing guest space…" : <>Continue as guest <ArrowRight className="size-4" /></>}
+      </Button>
+      <p className="mt-2 text-center text-xs text-muted-foreground">Explore with sample courses and tasks. No sign-up required.</p>
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {signup ? "Already have an account?" : "New to StudyFlow?"}{" "}
         <button className="font-medium text-primary hover:underline" onClick={() => { setSignup(!signup); setErrors({}); }}>
